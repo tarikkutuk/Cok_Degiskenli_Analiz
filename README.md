@@ -1,5 +1,4 @@
 # Çok Değişkenli Analiz Yöntemleri
-Çok değişkenli istatistiksel yöntemler uygulamaları
 
 Bu proje Lisans 4. sınıfta aldığım Çok Değişkenli İstatistiksel Yöntemler isimli dersimde yaptığım projedir.
 
