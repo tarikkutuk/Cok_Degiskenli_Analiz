@@ -1,0 +1,54 @@
+---
+title: "tba_markdown"
+output: html_document
+---
+```{r}
+library(readxl)
+hamveri <- read_excel("C:/Users/tarik/Desktop/ödev/hamveri.xlsx")
+View(hamveri)
+
+```
+
+```{r}
+library(GGally)
+kalp_data<-hamveri[,3:5]
+View(kalp_data)
+ggpairs(kalp_data)
+```
+
+```{r}
+library("Hmisc")
+rcorr(as.matrix(kalp_data),type="pearson")
+```
+```{r}
+library(psych)
+KMO(kalp_data)
+```
+```{r}
+cortest.bartlett(cor(kalp_data),nrow(kalp_data))
+```
+
+
+```{r}
+fit.pca <- prcomp(kalp_data, scale=TRUE)
+fit.pca$rotation
+fit.pca$x
+summary(fit.pca)
+(fit.pca$sdev)^2
+```
+```{r}
+plot(fit.pca)
+plot(fit.pca,type="line")
+```
+```{r}
+
+fit.pca$rotation[,1:2]
+
+
+```
+```{r}
+faktor_yukleri<-t(fit.pca$rotation)*fit.pca$sdev
+faktor_yukleri
+
+```
+
