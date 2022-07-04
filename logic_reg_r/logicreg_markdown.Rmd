@@ -1,0 +1,92 @@
+---
+title: "log_reg"
+output: html_document
+---
+
+```{r}
+library(readxl)
+hamveri <- read_excel("C:/Users/tarik/Desktop/ödev/hamveri.xlsx")
+View(hamveri)
+```
+```{r}
+veri<-hamveri[,-2]
+veri<-veri[,-6]
+veri<-veri[,-6]
+veri<-veri[,-6]
+veri<-veri[,-6]
+veri<-veri[,-6]
+veri$target <- factor(veri$target, levels=c(0,1),labels=c("sağlıklı","hasta") ) 
+summary(veri)
+```
+```{r}
+library(corrplot)
+library(matlib)
+korelasyon<-corrplot(cor(veri[,-6]), method="number", title = "korelasyon")
+```
+```{r}
+invkor<-inv(korelasyon$corr)
+invkor
+```
+```{r}
+#Logistic Regresyon 
+model_veri <- glm(target ~yas+drgn_kbsnc+klstrl+mx_klp_ats+oldpeak, family = "binomial", data = veri)
+summary(model_veri)
+
+```
+```{r}
+model_veri$deviance
+model_veri$null.deviance
+kikare<- model_veri$null.deviance-model_veri$deviance
+kikare
+```
+```{r}
+model_veri$df.null
+model_veri$df.residual
+df<-model_veri$df.null-model_veri$df.residual
+df
+```
+```{r}
+kikare.p<- 1 - pchisq(kikare,df)
+kikare.p
+
+```
+```{r}
+library(ResourceSelection)
+hoslem.test(model_veri$y,fitted(model_veri))
+```
+```{r}
+library(DescTools)
+PseudoR2(model_veri, which = c("CoxSnell","Nagelkerke"))
+
+```
+```{r}
+N<-nrow(veri)
+exp(coef(model_veri))
+exp(confint.default(model_veri,level = 0.95)) 
+```
+```{r}
+type_pred<-fitted(model_veri)
+typefac<- ifelse(type_pred>0.5,"hasta","sağlıklı")
+t_tab <- table(veri$target, typefac)
+t_tab
+```
+```{r}
+#stepwise
+library(MASS)
+step_model<-step(model_veri,direction="forward") #direction=c("backward","forward","both") 
+step_model
+```
+```{r}
+summary(step_model)
+```
+```{r}
+exp(step_model$coefficients)
+exp(confint.default(step_model,level = 0.95)) 
+```
+```{r}
+type_pred<-fitted(step_model)
+typefac<- ifelse(type_pred>0.5,"hasta","sağlıklı")
+t_tab <- table(veri$target, typefac)
+t_tab
+```
+

@@ -1,0 +1,64 @@
+library(haven)
+kalpverisi <- read_sav("C:/Users/tarik/Desktop/ödev/spss ham veri.sav")
+
+library(corrplot)
+library(matlib)
+kalp_faktor=kalpverisi[,3:6]
+corrplot(cor(kalp_faktor))
+
+library("Hmisc") #anlamlılık değerleriyle birlikte görmek istersek (2-tailed sonuçlar)
+rcorr(as.matrix(kalp_faktor),type="pearson") # Veri matris formatında olmalı
+
+corrplot(cor(kalp_faktor))
+korelasyon<-cor(kalp_faktor)
+korelasyon
+
+invkor<-inv(korelasyon)# korelasyon matrisinin tersi (VIF)
+colnames(invkor)<-rownames(invkor)<-colnames(korelasyon) # değişken isimleri yazması için
+invkor
+
+#Faktor Analizi Uygulanabilirligi (KMO - Anti-Image - Bartlett Test)
+library(psych)
+KMO(kalp_faktor) # KMO ve MSA Anti-image matris kosegenleri
+
+cortest.bartlett(cor(kalp_faktor),nrow(kalp_faktor))
+
+#Temel Bilesenler Analizi Yöntemi(Kok lambda yaklasimi) secilerek faktor analizi
+fa_kokl<-principal(kalp_faktor, nfactors =2, rotate = "none")
+###fit.pca2 <- prcomp( ~., domes_factor, scale=TRUE) # koymasak olur 125.satır scree plot için gerekli sadece
+print(fa_kokl$loadings, digits=3, cutoff=.0, sort=TRUE) ## sıralı hale getirmek için
+
+fa_kokl$communality
+
+
+fa_kokl$loadings[ , ]^2# aj^2 'ler tüm faktörler için (communality herbir değişken için yüklerin kareler toplamıdır)
+rowSums(fa_kokl$loadings[ , ]^2) #communality hesaplanışı görülmesi için
+
+ncol(kalp_faktor)
+
+var_oran<-colSums(fa_kokl$loadings[ , ]^2)/9 #varyans aciklama oranlari (değişken sayısına dikkat et!!!)
+var_oran
+sum(var_oran) # 3 Faktörün toplam varyans açıklama oranı
+
+
+
+plot(fa_kokl$values, type="b", main="ScreePlot", xlab="Number of Factors", ylab="Eigenvalues")
+artik_kor<-fa_kokl$residual
+
+n_col_artik<-ncol(artik_kor)
+n_artik<-length(artik_kor)
+n_2artik<-n_artik-n_col_artik
+length(artik_kor[abs(artik_kor)<0.05])/72
+
+
+
+fa_kokl<-principal(kalp_faktor, nfactors =2, rotate = "varimax")
+print(fa_kokl$loadings, digits=2, cutoff=.2, sort=TRUE)
+
+fa.diagram(fa_kokl)
+
+fyuk=fa_kokl$loadings[,1:2]
+fyuk
+
+fyuk2=fa_kokl$loadings[,1:2]
+factor.plot(fyuk2, cut=0.5, labels=rownames(fa_kokl$loadings),font=2, cex=0.8)

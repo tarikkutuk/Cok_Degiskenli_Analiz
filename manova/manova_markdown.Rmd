@@ -1,0 +1,159 @@
+---
+title: "manova"
+output: html_document
+---
+
+```{r}
+library(readxl)
+hamveri <- read_excel("C:/Users/tarik/Desktop/çda ödev/hamveri.xlsx")
+View(hamveri)
+```
+
+```{r}
+library(tidyverse)
+library(ggpubr)
+library(rstatix)
+library(car)
+library(broom)
+library(dplyr)
+library(tidyr)
+library(haven)
+
+```
+```{r}
+veri<-hamveri
+veri<-as.data.frame(veri)
+```
+```{r}
+summary(veri)
+```
+```{r}
+#çok değişkenli normallik
+library(dplyr)
+veri%>%
+  dplyr::select(yas,drgn_kbsnc) %>%
+  mshapiro_test()
+
+```
+
+```{r}
+library(biotools)
+box_m(veri[, c("yas","drgn_kbsnc")], veri$slope)
+```
+```{r}
+#Grup gozlem dagilimi
+veri %>%
+  group_by(slope) %>%
+  dplyr::summarise(N = n())
+```
+
+```{r}
+veri %>% 
+  group_by(slope) %>%
+  summarise(across(-kagt, list(mean=mean,sd=sd)))
+```
+
+```{r}
+#slope için
+library(gplots)
+plotmeans(yas~slope,xlab="slope",ylab="yas", main="Mean Plot\nwith 95% CI",data=veri)
+plotmeans(drgn_kbsnc~slope, xlab="slope",ylab="kan basıncı", main="Mean Plot\nwith 95% CI",data=veri)
+
+
+```
+
+```{r}
+#kagt için
+plotmeans(yas~kagt,xlab="slope",ylab="yas", main="Mean Plot\nwith 95% CI",data=veri)
+plotmeans(drgn_kbsnc~kagt, xlab="slope",ylab="kan basıncı", main="Mean Plot\nwith 95% CI",data=veri)
+
+```
+
+```{r}
+#manova
+slope_kagt_manova <- manova(cbind(yas,drgn_kbsnc) ~ slope,data=veri)
+summary(slope_kagt_manova, test = "Hotelling-Lawley")
+summary(slope_kagt_manova, test = "Wilks")
+summary(slope_kagt_manova, test = "Pillai")
+summary(slope_kagt_manova, test = "Roy")
+
+```
+
+```{r}
+library(heplots)
+library(car)
+summary.aov(slope_kagt_manova)
+```
+
+```{r}
+m_tukey22 <- veri %>%
+  pivot_longer( c(yas,drgn_kbsnc),names_to = "variables", values_to = "value") %>%
+  group_by(variables) %>%
+  tukey_hsd(value ~ kagt*slope)
+m_tukey22<-m_tukey22[,c(1,2,4,3,5:9)]
+kagt_etk<-filter(m_tukey22, term=="slope")
+kagt_etk
+
+```
+
+```{r}
+kalicilik_aov <- aov(yas ~ slope, data = veri)
+TukeyHSD(kalicilik_aov, "slope")
+```
+
+```{r}
+kalicilik_aov <- aov(yas ~ slope, data = veri)
+TukeyHSD(kalicilik_aov, "slope")
+```
+
+```{r}
+kalicilik_aov2 <- aov(drgn_kbsnc ~ slope, data = veri)
+TukeyHSD(kalicilik_aov2, "slope")
+```
+```{r}
+#çift yönlü manova
+boxM( cbind(yas,drgn_kbsnc) ~ slope*kagt, data=veri)
+```
+```{r}
+slope_kagt_cift <- manova(cbind(yas,drgn_kbsnc) ~ slope*kagt,data=veri)
+```
+
+```{r}
+summary(slope_kagt_cift, test = "Hotelling-Lawley")
+summary(slope_kagt_cift, test = "Wilks")
+summary(slope_kagt_cift, test = "Pillai")
+summary(slope_kagt_cift, test = "Roy")
+
+```
+```{r}
+library(car)
+veri %>% 
+  pivot_longer( c(yas,drgn_kbsnc),names_to = "variable", values_to = "value") %>%
+  group_by(variable) %>%
+  levene_test(value ~ slope*kagt,center=mean)
+
+```
+
+```{r}
+summary.aov(slope_kagt_cift)
+```
+
+```{r}
+
+m_tukey22 <- veri %>%
+  pivot_longer( c(yas,drgn_kbsnc),names_to = "variables", values_to = "value") %>%
+  group_by(variables) %>%
+  tukey_hsd(value ~ slope*kagt)
+m_tukey22<-m_tukey22[,c(1,2,4,3,5:9)]
+kagt_etk<-filter(m_tukey22, term=="kagt")
+kagt_etk
+
+```
+
+```{r}
+attach(veri)
+interaction.plot(kagt,slope,drgn_kbsnc, fun=mean, type="l", legend=TRUE,col=1:3, lwd=2)
+interaction.plot(kagt,slope,yas, fun=mean, type="l", legend=TRUE, col=1:3,lwd=2)
+detach(veri)
+```
+

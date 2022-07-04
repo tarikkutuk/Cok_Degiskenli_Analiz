@@ -1,0 +1,84 @@
+---
+title: "tba_faktor"
+output: html_document
+---
+
+```{r}
+library(haven)
+kalpverisi <- read_sav("C:/Users/tarik/Desktop/ödev/spss ham veri.sav")
+
+```
+```{r}
+library(corrplot)
+library(matlib)
+kalp_faktor=kalpverisi[,3:6] #analiz yapılacak değişkenler
+```
+
+```{r}
+library("Hmisc")
+rcorr(as.matrix(kalp_faktor),type="pearson") 
+
+corrplot(cor(kalp_faktor))
+```
+
+
+```{r}
+korelasyon<-cor(kalp_faktor)
+korelasyon
+```
+```{r}
+invkor<-inv(korelasyon)# korelasyon matrisinin tersi (VIF)
+colnames(invkor)<-rownames(invkor)<-colnames(korelasyon) # değişken isimleri yazması için
+invkor
+```
+```{r}
+library(psych)
+KMO(kalp_faktor)
+```
+```{r}
+cortest.bartlett(cor(kalp_faktor),nrow(kalp_faktor))
+```
+```{r}
+fa_kokl<-principal(kalp_faktor, nfactors =2, rotate = "none")
+print(fa_kokl$loadings, digits=3, cutoff=.0, sort=TRUE) ## sıralı hale getirmek için
+
+fa_kokl$communality
+fa.diagram(fa_kokl)
+```
+```{r}
+fa_kokl$loadings[ , ]^2# aj^2 'ler tüm faktörler için (communality herbir değişken için yüklerin kareler toplamıdır)
+rowSums(fa_kokl$loadings[ , ]^2) #communality hesaplanışı görülmesi için
+
+```
+
+```{r}
+plot(fa_kokl$values, type="b", main="ScreePlot", xlab="Number of Factors", ylab="Eigenvalues")
+artik_kor<-fa_kokl$residual
+```
+```{r}
+n_col_artik<-ncol(artik_kor)
+n_artik<-length(artik_kor)
+n_2artik<-n_artik-n_col_artik
+length(artik_kor[abs(artik_kor)<0.05])/72
+```
+```{r}
+fa_kokl<-principal(kalp_faktor, nfactors =2, rotate = "varimax")
+print(fa_kokl$loadings, digits=2, cutoff=.2, sort=TRUE)
+```
+```{r}
+fyuk=fa_kokl$loadings[,1:2]
+fyuk
+```
+```{r}
+fyuk2=fa_kokl$loadings[,1:2]
+factor.plot(fyuk2, cut=0.5, labels=rownames(fa_kokl$loadings),font=2, cex=0.8)
+```
+```{r}
+plot(fa_kokl$values, type="b", main="ScreePlot", xlab="Number of Factors", ylab="Eigenvalues")
+```
+
+
+
+
+
+

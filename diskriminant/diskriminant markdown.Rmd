@@ -1,0 +1,96 @@
+---
+title: "diskriminant"
+output: html_document
+---
+```{r}
+library(haven)
+spss_ham_veri <- read_sav("C:/Users/tarik/Desktop/ödev/spss ham veri.sav")
+View(spss_ham_veri)
+```
+
+```{r}
+veri<-spss_ham_veri[,-2]
+veri<-veri[,-4]
+veri<-veri[,-1]
+veri<-veri[,-1]
+veri<-veri[,-1]
+veri<-veri[,-1]
+veri<-veri[,-1]
+veri<-veri[,-1]
+veri<-veri[,-1]
+veri<-veri[,-1]
+veri<-veri[,-1]
+veri<-veri[,-4]
+veri<-veri[,-4]
+veri<-veri[,-4]
+veri<-veri[,-4]
+veri<-veri[,-4]
+veri<-veri[,-4]
+veri<-veri[,-4]
+veri<-veri[,-4]
+veri<-veri[,-4]
+veri<-veri[,-4]
+veri<-veri[,-4]
+```
+```{r}
+veri2<-veri[,-1]
+```
+
+```{r}
+library(corrplot)
+corrplot(cor(veri[,-1], method = "spearman"), method="number") 
+```
+```{r}
+summary(veri)
+veri$target<-factor(veri$target,levels = c(0,1),labels=c("sağlıklı","hasta"))
+
+```
+
+```{r}
+library(funModeling)
+plot_num(veri2)
+#değişken bazında normallik
+shapiro.test(veri2$FAC1_1)
+shapiro.test(veri2$FAC2_1)
+
+```
+```{r}
+#çoklu normallik
+library(dplyr)
+library(rstatix)
+veri %>% 
+  dplyr::select(!c(target)) %>%
+  mshapiro_test()
+
+```
+```{r}
+library(biotools)
+boxM(veri[,2:3], veri$target)
+```
+```{r}
+library(MASS) 
+lda_veri <- lda(target ~ FAC1_1+FAC2_1, data=veri) 
+lda_veri
+
+`````
+```{r}
+#Grup tahmini yapilmasi
+lda_pred <- predict(lda_veri)
+lda_pred$class # Sinifatamalari 
+#plots
+ldahist(lda_pred$x, g = veri$target) 
+#tablo
+tablo<-table(veri$target,lda_pred$class)
+tablo
+#doğru atama oranı
+classrate<-sum(diag(tablo))/sum(tablo)
+classrate
+#nispi şans kriterleri
+lda_veri$prior[1]^2 + lda_veri$prior[2]^2
+#Orjinal gruplar ile Tahmin edilen grupların karşılaştırılması
+comp<-cbind(veri$target,lda_pred$class)
+comp
+```
+
+
+

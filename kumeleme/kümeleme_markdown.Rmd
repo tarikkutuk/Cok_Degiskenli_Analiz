@@ -1,0 +1,54 @@
+---
+title: "R Notebook"
+output:
+  html_document:
+    df_print: paged
+---
+```{r}
+library(haven)
+spss_ham_veri <- read_sav("C:/Users/tarik/Desktop/ödev/spss ham veri.sav")
+
+```
+```{r}
+veri<-spss_ham_veri[,2:6] #sadece analiz yapılacak değişkenler ve gözlemlerin id'si bırakıldı
+veri<-veri[,-2]
+mydata <- scale(veri)
+```
+
+```{r}
+library("Hmisc")
+rcorr(as.matrix(veri[,-1]),type="pearson") 
+```
+```{r}
+library(dendextend)
+d <- dist(mydata, method = "euclidean")
+fit <- hclust(d, method="ward.D") #method= "single", "complete", "average", "ward.D", "centroid"
+dend<-as.dendrogram(fit)
+plot(dend)
+plot(color_branches(dend, k=5))
+```
+```{r}
+#başlangıç küme merkezlerini seçerek kümeleme yapamadım. bu kısımdan sonrası raporda yoktur.
+#spss'de başlangıç küme merkezlerini seçerek yaptığım için buradan sonraki sonuçlar spss'le aynı çıkmamaktadır.
+#sebebi ise k-means yönteminde başlangıç küme merkezlerini default'ta rastgele seçmesi olduğunu düşünüyorum.
+#kısacası rastgele seçtiği için her seferinde farklı kümeleme yaptığınu düşünüyorum, ya da kodlarımda hata var.
+
+```
+
+```{r}
+library(factoextra)
+library(circlize)
+fviz_nbclust(veri[,-1], kmeans, method = "wss")
+km.res <- kmeans(veri[,-1],5, iter.max=25, algorithm="Lloyd")
+km.res
+```
+```{r}
+library(cluster)
+clusplot(mydata, km.res$cluster, main='2D representation of the Cluster solution',
+         color=TRUE, shade=TRUE,
+         labels=2, lines=0)
+fviz_cluster(km.res, data = mydata, palette = "jco",
+             ggtheme = theme_minimal())
+
+```
+
